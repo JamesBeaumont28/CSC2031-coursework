@@ -1,0 +1,18 @@
+# Flask Framework Packages
+click
+Flask~=3.0.3
+itsdangerous
+Jinja2
+MarkupSafe
+Werkzeug
+# Flask Functionality Packages
+Flask-Login
+Flask-Migrate~=4.0.7
+Flask-Script
+Flask-SQLAlchemy
+Flask-WTF
+Flask-Admin~=1.6.1
+WTForms~=3.1.2
+
+SQLAlchemy~=2.0.35
+alembic~=1.13.3
