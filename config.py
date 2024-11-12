@@ -8,9 +8,12 @@ import secrets
 #database import
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, false
 from datetime import datetime
 
+from wtforms.validators import length
+
+from accounts.forms import LoginForm
 
 app = Flask(__name__)
 
@@ -81,6 +84,35 @@ class User(db.Model):
         self.phone = phone
         self.password = password
 
+    def verify_password(submitted_password):
+        if User.query.filter_by(password = submitted_password).first() is None:
+            return False
+        else:
+            return True
+
+    def password_integrity_check(submitted_password):
+        if len(submitted_password) < 8 or len(submitted_password) > 15:
+            return False;
+        print("i am running")
+        upper = False
+        lower = False
+        digit = False
+        special = False
+
+        for i in range(len(submitted_password)):
+            if submitted_password[i].isupper():
+                upper = True
+            if submitted_password[i].islower():
+                lower = True
+            if submitted_password[i].isdigit():
+                digit = True
+            if submitted_password[i] in "!@#$%^&*()-+?_=,<>/\\|{}[]:;\"'`~":
+                special = True
+
+        if not upper or not lower or not digit or not special:
+            return False
+        else:
+            return True
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
     def get_url(self):
@@ -90,14 +122,20 @@ class MainIndexLink(MenuLink):
 class PostView(ModelView):
     column_display_pk = True
     column_hide_backrefs = False
-    column_list = ('id', 'created', 'title', 'body')
+    column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
 
+class UserView(ModelView):
+    column_display_pk = True  # optional, but I like to see the IDs in the list
+    column_hide_backrefs = False
+    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts')
 
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
 admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
+admin.add_view(UserView(User, db.session))
+
 
 # IMPORT BLUEPRINTS
 from accounts.views import accounts_bp
