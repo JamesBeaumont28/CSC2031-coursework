@@ -62,7 +62,7 @@ class Post(db.Model):
 
 class User(db.Model):
     __tablename__ = 'users'
-
+    login_atrempts = 0
     id = db.Column(db.Integer, primary_key=True)
 
     # User authentication information.
@@ -113,6 +113,16 @@ class User(db.Model):
             return False
         else:
             return True
+
+    def add_login_attempt(self):
+        self.login_attempts = self.login_attempts + 1
+        if self.login_attempts > 3:
+            print("max logins reached")
+            return false()
+        else:
+            return True
+
+
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
     def get_url(self):
@@ -138,7 +148,7 @@ admin.add_view(UserView(User, db.session))
 
 
 # IMPORT BLUEPRINTS
-from accounts.views import accounts_bp
+from accounts.views import accounts_bp, login
 from posts.views import posts_bp
 from security.views import security_bp
 
