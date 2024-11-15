@@ -37,8 +37,6 @@ def registration():
 
 @accounts_bp.route('/login',methods=['GET','POST'])
 def login():
-    login_atempts = 0
-    print("login aptempts: ", login_atempts)
     form = LoginForm()
     data = {
         "secret": "6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd",
@@ -46,23 +44,22 @@ def login():
     }
     response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=data)
     result = response.json()
+    if not User.check_login_count():
+        print("maxiumum logins reached")
 
-    if form.validate_on_submit():
-        if login_atempts >= 3:
-            flash('Max login atempts reached', category="danger")
-            #make login form disapear
-
-        elif not User.verify_password(form.password.data):
+    elif form.validate_on_submit():
+        if not User.verify_password(form.password.data):
             flash('Your email or password is incorrect', category="danger")
-            login_atempts= login_atempts + 1
+            User.add_login_attempt()
             return render_template('accounts/login.html', form=form)
 
         elif not result.get("success"):
             flash('your reCHAPCHA failed or was not submitted', category="danger")
-            login_atempts = login_atempts + 1
+            User.add_login_attempt()
             return render_template('accounts/login.html', form=form)
         else:
             flash('Login Successful', category='success')
+            User.reset_login_limits()
             return redirect(url_for('accounts.account'))
 
     return render_template('accounts/login.html', form=form)
