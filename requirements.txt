@@ -18,4 +18,4 @@ SQLAlchemy~=2.0.35
 alembic~=1.13.3
 
 # libary for reCHAPCHA verification
-request
+#request

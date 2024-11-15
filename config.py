@@ -11,6 +11,8 @@ from flask_migrate import Migrate
 from sqlalchemy import MetaData, false
 from datetime import datetime
 
+#date and time
+import datetime
 from wtforms.validators import length
 
 from accounts.forms import LoginForm
@@ -62,7 +64,8 @@ class Post(db.Model):
 
 class User(db.Model):
     __tablename__ = 'users'
-    login_atrempts = 0
+    login_atrempts,min_login_atempts,day_login_atempts = 0
+    last_min_login_time,last_day_login_time = datetime.datetime.now()
     id = db.Column(db.Integer, primary_key=True)
 
     # User authentication information.
@@ -116,9 +119,18 @@ class User(db.Model):
 
     def add_login_attempt(self):
         self.login_attempts = self.login_attempts + 1
+        self.day_login_atempts = self.day_login_atempts + 1
+        self.min_login_atempts = self.min_login_atempts + 1
+        current_datetime = datetime.datetime.now()
         if self.login_attempts > 3:
             print("max logins reached")
-            return false()
+            return False
+        elif self.min_login_atempts > 20 and (current_datetime-self.last_min_login_time).total_seconds() > 60:
+            print("Max logins per min exceeded")
+            return  False
+        elif self.day_login_atempts > 200 and (current_datetime - self.last_day_login_time).total_seconds() > 86400:
+            print("Max daily login attempts reached")
+            return False
         else:
             return True
 
