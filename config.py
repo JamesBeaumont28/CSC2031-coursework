@@ -64,8 +64,6 @@ class Post(db.Model):
 
 class User(db.Model):
     __tablename__ = 'users'
-    login_attempts,min_login_attempts,day_login_attempts = 0
-    last_min_login_time,last_day_login_time = datetime.datetime.now()
     id = db.Column(db.Integer, primary_key=True)
 
     # User authentication information.
@@ -116,32 +114,6 @@ class User(db.Model):
             return False
         else:
             return True
-
-    def check_login_count(self):
-        current_datetime = datetime.datetime.now()
-        if self.login_attempts > 3:
-            print("max logins reached")
-            return False
-        elif self.min_login_attempts > 20 and (current_datetime - self.last_min_login_time).total_seconds() > 60:
-            print("Max logins per min exceeded")
-            return False
-        elif self.day_login_attempts > 200 and (current_datetime - self.last_day_login_time).total_seconds() > 86400:
-            print("Max daily login attempts reached")
-            return False
-        else:
-            return True
-
-    def reset_login_limits(self):
-        self.login_attempts, self.min_login_attempts, self.day_login_attempts = 0
-        self.last_min_login_time, self.last_day_login_time = self.datetime.datetime.now()
-        return
-
-    def add_login_attempt(self):
-        self.login_attempts = self.login_attempts + 1
-        self.day_login_attempts = self.day_login_attempts + 1
-        self.min_login_attempts = self.min_login_attempts + 1
-
-
 
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):

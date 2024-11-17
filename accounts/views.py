@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, flash, redirect, url_for,jsonify,request
+from flask import Blueprint, render_template, flash, redirect, url_for,jsonify,request,session
 import requests
+from markupsafe import Markup
+from sqlalchemy import nullsfirst
 
 from accounts.forms import RegistrationForm, LoginForm
 from config import User, db
@@ -44,25 +46,33 @@ def login():
     }
     response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=data)
     result = response.json()
-    if not User.check_login_count():
-        print("maxiumum logins reached")
 
-    elif form.validate_on_submit():
-        if not User.verify_password(form.password.data):
-            flash('Your email or password is incorrect', category="danger")
-            User.add_login_attempt()
-            return render_template('accounts/login.html', form=form)
+    if 'authentication_attempts' not in session:
+        session['authentication_attempts'] = 0
+    if form.validate_on_submit():
 
-        elif not result.get("success"):
-            flash('your reCHAPCHA failed or was not submitted', category="danger")
-            User.add_login_attempt()
-            return render_template('accounts/login.html', form=form)
+        if not User.query.filter(User.email == form.email.data, User.password == form.password.data).first():
+            session['authentication_attempts'] = session.get('authentication_attempts') + 1
+            if session.get('authentication_attempts') >= 3:
+                flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")
+                return render_template('accounts/login.html')
+
+            else:
+                flash('Your login details incorrect please try again, ' + format(
+                3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
+                return render_template('accounts/login.html', form=form)
+
         else:
+            session['authentication_attempts'] = 0
             flash('Login Successful', category='success')
-            User.reset_login_limits()
             return redirect(url_for('accounts.account'))
 
     return render_template('accounts/login.html', form=form)
+
+@accounts_bp.route('/unlock')
+def unlock():
+    session['authentication_attempts'] = 0
+    return redirect(url_for('accounts.login'))
 
 @accounts_bp.route('/account')
 def account():
