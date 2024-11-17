@@ -3,7 +3,7 @@ click
 Flask~=3.0.3
 itsdangerous
 Jinja2
-MarkupSafe
+MarkupSafe~=3.0.2
 Werkzeug
 # Flask Functionality Packages
 Flask-Login
@@ -18,5 +18,7 @@ SQLAlchemy~=2.0.35
 alembic~=1.13.3
 
 # libary for reCHAPCHA verification
-#request
 requests~=2.32.3
+
+#libary for authentication request limit EX 10
+Flask-Limiter~=3.8.0

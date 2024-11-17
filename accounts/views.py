@@ -1,11 +1,15 @@
 from flask import Blueprint, render_template, flash, redirect, url_for,jsonify,request,session
 import requests
+from flask_limiter.util import get_remote_address
 from markupsafe import Markup
 from sqlalchemy import nullsfirst
 
 from accounts.forms import RegistrationForm, LoginForm
 from config import User, db
 
+from flask_limiter import Limiter
+
+limiter = Limiter(get_remote_address)
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 
 @accounts_bp.route('/registration',methods=['GET','POST'])
@@ -27,6 +31,8 @@ def registration():
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
+                        MFAkey = "",
+                        MFA_enabled = False,
                         )
 
         db.session.add(new_user)
@@ -38,6 +44,7 @@ def registration():
     return render_template('accounts/registration.html', form=form)
 
 @accounts_bp.route('/login',methods=['GET','POST'])
+@limiter.limit("2 per minute,200 per day", error_message='Too many requests have been sent. Please come back later and try again.')
 def login():
     form = LoginForm()
     data = {

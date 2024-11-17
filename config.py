@@ -1,14 +1,17 @@
-from flask import Flask, url_for
+from flask import Flask, url_for, jsonify, render_template
 
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 import secrets
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 #database import
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import MetaData, false
+from sqlalchemy import MetaData, false, nullsfirst
 from datetime import datetime
 
 #date and time
@@ -26,7 +29,9 @@ app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['FLASK_ADMIN_FLUID_LAYOUT'] = True
 
+limiter = Limiter(get_remote_address, app=app, default_limits=["20 per minute,200 per day"])
 metadata = MetaData(
     naming_convention={
     "ix": 'ix_%(column_0_label)s',
@@ -75,15 +80,21 @@ class User(db.Model):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
 
+    #MFA info
+    MFAkey = db.Column(db.String(100), nullable=False)
+    MFA_enabled = db.Column(db.Boolean(),nullable=False)
+
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
 
-    def __init__(self, email, firstname, lastname, phone, password):
+    def __init__(self, email, firstname, lastname, phone, password,MFAkey,MFA_enabled):
         self.email = email
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
         self.password = password
+        self.MFAkey = MFAkey
+        self.MFA_enabled = MFA_enabled
 
     def verify_password(submitted_password):
         if User.query.filter_by(password = submitted_password).first() is None:
@@ -129,7 +140,7 @@ class PostView(ModelView):
 class UserView(ModelView):
     column_display_pk = True  # optional, but I like to see the IDs in the list
     column_hide_backrefs = False
-    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts')
+    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts','MFA key','MFA activated')
 
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
@@ -149,3 +160,7 @@ from security.views import security_bp
 app.register_blueprint(accounts_bp)
 app.register_blueprint(posts_bp)
 app.register_blueprint(security_bp)
+
+@app.errorhandler(429)
+def ratelimit_error(e):
+    return render_template('errors/429_error.html'), 429
