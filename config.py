@@ -81,7 +81,7 @@ class User(db.Model):
     phone = db.Column(db.String(100), nullable=False)
 
     #MFA info
-    MFAkey = db.Column(db.String(100), nullable=False)
+    MFAkey = db.Column(db.String(32), nullable=False)
     MFA_enabled = db.Column(db.Boolean(),nullable=False)
 
     # User posts

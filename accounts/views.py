@@ -9,6 +9,8 @@ from config import User, db
 
 from flask_limiter import Limiter
 
+import pyotp
+
 limiter = Limiter(get_remote_address)
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 
@@ -31,15 +33,15 @@ def registration():
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
-                        MFAkey = "",
+                        MFAkey = pyotp.random_base32(),
                         MFA_enabled = False,
                         )
 
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Account Created', category='success')
-        return redirect(url_for('accounts.login'))
+        flash('Account Created. You must enable Multi-factor authentication first to login', category='success')
+        return render_template('accounts/MFA_setup.html', secret=new_user.MFAkey)
 
     return render_template('accounts/registration.html', form=form)
 
@@ -58,7 +60,7 @@ def login():
         session['authentication_attempts'] = 0
     if form.validate_on_submit():
 
-        if not User.query.filter(User.email == form.email.data, User.password == form.password.data).first():
+        if not User.query.filter(User.email == form.email.data, User.password == form.password.data,pyotp.TOTP(User.MFAkey) == form.pin.data).first():
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
             if session.get('authentication_attempts') >= 3:
                 flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")

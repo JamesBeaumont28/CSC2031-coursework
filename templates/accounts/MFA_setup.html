@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Multi-Factor Authentication setup</h1>
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+            {{ message }}. Go to <a href="{{ url_for('accounts.login') }}">login page</a>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                    onclick=delete_flash(this)>
+                <span>&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+`       {% endwith %}
+    </div>
+    <div style="align-items: center; font-size: 22px;">
+    <P>Open Microsoft Authenticator on your phone.</P>
+    <p>Alternative download<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en-US">Google Authenticator</a> on your phone.</p>
+    <p>Select a new account.</p>
+    <p>Manually enter the code below.</p>
+    </div>
+    <div style="align-items: center; font-size: 28px;">
+        <hr>
+        <p>Code</p>
+        {{secret}}
+        <hr>
+
+    </div>
+    <div style ="align-items: center; font-size: 22px;">
+        <P>Once you have entered the code please click <a href="http://127.0.0.1:5000/login">here</a>.</P>
+    </div>
+
+{% endblock %}
