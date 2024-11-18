@@ -59,8 +59,8 @@ def login():
     if 'authentication_attempts' not in session:
         session['authentication_attempts'] = 0
     if form.validate_on_submit():
-
-        if not User.query.filter(User.email == form.email.data, User.password == form.password.data,pyotp.TOTP(User.MFAkey) == form.pin.data).first():
+        user = User.query.filter(User.email == form.email.data).first()
+        if user is None or not user.password == form.password.data:
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
             if session.get('authentication_attempts') >= 3:
                 flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")
@@ -70,6 +70,11 @@ def login():
                 flash('Your login details incorrect please try again, ' + format(
                 3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
                 return render_template('accounts/login.html', form=form)
+
+        #this not work
+        elif not user.MFA_enabled:
+            flash('You must set up Multi-Factor Authentication before you can log in',category="danger")
+            return render_template('accounts/MFA_setup.html', secret=user.MFAkey)
 
         else:
             session['authentication_attempts'] = 0

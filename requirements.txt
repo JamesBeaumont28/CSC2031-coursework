@@ -18,7 +18,7 @@ SQLAlchemy~=2.0.35
 alembic~=1.13.3
 
 # libary for reCHAPCHA verification
-requests~=2.32.3
+requests
 
 #libary for authentication request limit EX 10
-Flask-Limiter~=3.8.0
+Flask-Limiter
