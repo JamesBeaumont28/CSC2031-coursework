@@ -19,3 +19,8 @@ class LoginForm(FlaskForm):
     pin = StringField(validators=[DataRequired()])
     submit = SubmitField()
 
+class MFAForm(FlaskForm):
+    email = StringField(validators=[DataRequired()])
+    pin = StringField(validators=[DataRequired()])
+    submit = SubmitField()
+

@@ -4,7 +4,7 @@ from flask_limiter.util import get_remote_address
 from markupsafe import Markup
 from sqlalchemy import nullsfirst
 
-from accounts.forms import RegistrationForm, LoginForm
+from accounts.forms import RegistrationForm, LoginForm, MFAForm
 from config import User, db
 
 from flask_limiter import Limiter
@@ -41,7 +41,8 @@ def registration():
         db.session.commit()
 
         flash('Account Created. You must enable Multi-factor authentication first to login', category='success')
-        return render_template('accounts/MFA_setup.html', secret=new_user.MFAkey)
+        form = MFAForm()
+        return render_template('accounts/MFA_setup.html', form=form,secret=new_user.MFAkey)
 
     return render_template('accounts/registration.html', form=form)
 
@@ -60,8 +61,17 @@ def login():
         session['authentication_attempts'] = 0
     if form.validate_on_submit():
         user = User.query.filter(User.email == form.email.data).first()
-        if user is None or not user.password == form.password.data:
+        if user is None:
+            flash('email is not registered, please register to login')
+        if not user.MFA_enabled:
+            flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
+            form = MFAForm()
+            return render_template('accounts/MFA_setup.html', form=form, secret=user.MFAkey)
+
+        elif not user.password == form.password.data or not pyotp.HOTP(user.MFAkey) == form.pin.data:
+
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
+
             if session.get('authentication_attempts') >= 3:
                 flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")
                 return render_template('accounts/login.html')
@@ -70,11 +80,6 @@ def login():
                 flash('Your login details incorrect please try again, ' + format(
                 3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
                 return render_template('accounts/login.html', form=form)
-
-        #this not work
-        elif not user.MFA_enabled:
-            flash('You must set up Multi-Factor Authentication before you can log in',category="danger")
-            return render_template('accounts/MFA_setup.html', secret=user.MFAkey)
 
         else:
             session['authentication_attempts'] = 0
@@ -87,6 +92,30 @@ def login():
 def unlock():
     session['authentication_attempts'] = 0
     return redirect(url_for('accounts.login'))
+
+@accounts_bp.route('/MFA_setup')
+def MFA_setup():
+    form = MFAForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter(User.email == form.email.data).first()
+
+        if user is None:
+            print("user is none")
+            flash('Email is not registered, please register before activating Multi-Factor Authentication')
+            return redirect(url_for('accounts.registration'))
+
+        elif user.email == form.email.data and pyotp.HOTP(user.MFAkey) == form.pin.data:
+            print("details are correct")
+            flash('Multi-Factor authentication activated, redirecting to login page.',category='success')
+            return redirect(url_for('accounts.login'))
+
+        else:
+            print("pin is wrong")
+            flash('Email or pin is incorrect please try again',category='danger')
+            return render_template('accounts/MFA_setup.html', form=form, secret=user.MFAkey)
+
+
 
 @accounts_bp.route('/account')
 def account():

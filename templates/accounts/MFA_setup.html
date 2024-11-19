@@ -26,10 +26,22 @@
         <p>Code</p>
         {{secret}}
         <hr>
-
     </div>
-    <div style ="align-items: center; font-size: 22px;">
-        <P>Once you have entered the code please click <a href="http://127.0.0.1:5000/login">here</a>.</P>
-    </div>
+    <form method="POST">
+                <div class="p-2 bg-light border border-primary">
+                    <div style="text-align: left">
+                        {{ form.csrf_token() }}
+                            <div class="form-group">
+                                {{ form.email.label}}<span style="color: red">*</span>
+                                {{ form.email(class="form-control") }}
+                                {{ form.pin.label}}<span style="color: red">*</span>
+                                {{ form.pin(class="form-control") }}
+                            </div>
+                    </div>
+                    <div>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </div>
+            </form>
 
 {% endblock %}

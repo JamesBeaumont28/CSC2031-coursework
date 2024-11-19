@@ -13,6 +13,10 @@ def registration():
 def login():
     return render_template('accounts/login.html')
 
+@app.route('/MFA_setup')
+def MFA_setup():
+    return render_template('accounts/MFA_setup.html')
+
 @app.route('/account')
 def account():
     return render_template('accounts/account.html')
