@@ -1,5 +1,5 @@
 CSC 2031 Course work
 
-current step: 
-EXER 8.2
-password_integrity_checker not working
+things that dont work:
+    -most of it tbh
+    -admin cant see MFA_key and MFA_enabled fields in user db view

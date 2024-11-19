@@ -2,19 +2,6 @@
 
 {% block content %}
     <h1>Multi-Factor Authentication setup</h1>
-    <div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
-            {{ message }}. Go to <a href="{{ url_for('accounts.login') }}">login page</a>.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"
-                    onclick=delete_flash(this)>
-                <span>&times;</span>
-            </button>
-        </div>
-        {% endfor %}
-`       {% endwith %}
-    </div>
     <div style="align-items: center; font-size: 22px;">
     <P>Open Microsoft Authenticator on your phone.</P>
     <p>Alternative download<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en-US">Google Authenticator</a> on your phone.</p>
@@ -31,6 +18,20 @@
                 <div class="p-2 bg-light border border-primary">
                     <div style="text-align: left">
                         {{ form.csrf_token() }}
+                        <div>
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+                                {{ message }}. Go to <a href="{{ url_for('accounts.login') }}">login page</a>.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        onclick=delete_flash(this)>
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            {% endfor %}
+
+                            {% endwith %}
+                        </div>
                             <div class="form-group">
                                 {{ form.email.label}}<span style="color: red">*</span>
                                 {{ form.email(class="form-control") }}

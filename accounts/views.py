@@ -62,7 +62,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter(User.email == form.email.data).first()
         if user is None:
-            flash('email is not registered, please register to login')
+            flash('email is not registered, please register to login',category='danger')
         if not user.MFA_enabled:
             flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
             form = MFAForm()
@@ -93,7 +93,7 @@ def unlock():
     session['authentication_attempts'] = 0
     return redirect(url_for('accounts.login'))
 
-@accounts_bp.route('/MFA_setup')
+@accounts_bp.route('/MFA_setup', methods=['GET', 'POST'])
 def MFA_setup():
     form = MFAForm()
 
@@ -101,21 +101,22 @@ def MFA_setup():
         user = User.query.filter(User.email == form.email.data).first()
 
         if user is None:
-            print("user is none")
-            flash('Email is not registered, please register before activating Multi-Factor Authentication')
+            flash('Email is not registered, please register before activating Multi-Factor Authentication',category='danger')
             return redirect(url_for('accounts.registration'))
 
-        elif user.email == form.email.data and pyotp.HOTP(user.MFAkey) == form.pin.data:
-            print("details are correct")
-            flash('Multi-Factor authentication activated, redirecting to login page.',category='success')
+        elif user.email == form.email.data and pyotp.TOTP(user.MFAkey).verify(form.pin.data):
+            user.MFA_enabled = True
+            db.session.commit()
+            flash('Multi-Factor authentication activated, redirecting to login page.', category='success')
             return redirect(url_for('accounts.login'))
-
+        elif user.MFA_enabled:
+            flash('Multi-Factor authentication has already been verified.', category='success')
+            return redirect(url_for('accounts.login'))
         else:
-            print("pin is wrong")
-            flash('Email or pin is incorrect please try again',category='danger')
+            flash('Email or pin is incorrect, please try again', category='danger')
             return render_template('accounts/MFA_setup.html', form=form, secret=user.MFAkey)
 
-
+    return render_template('accounts/MFA_setup.html', form=form)
 
 @accounts_bp.route('/account')
 def account():
