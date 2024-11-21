@@ -10,6 +10,7 @@ from config import User, db
 from flask_limiter import Limiter
 
 import pyotp
+import flask_qrcode
 
 limiter = Limiter(get_remote_address)
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
@@ -41,8 +42,8 @@ def registration():
         db.session.commit()
 
         flash('Account Created. You must enable Multi-factor authentication first to login', category='success')
-        form = MFAForm()
-        return render_template('accounts/MFA_setup.html', form=form,secret=new_user.MFAkey)
+        session['MFAkey'] = new_user.MFAkey
+        return redirect('MFA_setup')
 
     return render_template('accounts/registration.html', form=form)
 
@@ -66,7 +67,8 @@ def login():
         if not user.MFA_enabled:
             flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
             form = MFAForm()
-            return render_template('accounts/MFA_setup.html', form=form, secret=user.MFAkey)
+            session['MFAkey'] =  user.MFAkey
+            return redirect('MFA_setup')
 
         elif not user.password == form.password.data or not pyotp.HOTP(user.MFAkey) == form.pin.data:
 
@@ -96,6 +98,11 @@ def unlock():
 @accounts_bp.route('/MFA_setup', methods=['GET', 'POST'])
 def MFA_setup():
     form = MFAForm()
+    if 'user_uri' not in session:
+        session['user_uri'] = "No user loaded"
+    if 'MFAkey' not in session:
+        session['MFAkey'] = "please enter your email and a random pin to generate your key and QR code."
+        return render_template('accounts/MFA_setup.html', form=form, secret=session['MFAkey'], qr_code = session['user_uri'])
 
     if form.validate_on_submit():
         user = User.query.filter(User.email == form.email.data).first()
@@ -114,9 +121,10 @@ def MFA_setup():
             return redirect(url_for('accounts.login'))
         else:
             flash('Email or pin is incorrect, please try again', category='danger')
-            return render_template('accounts/MFA_setup.html', form=form, secret=user.MFAkey)
+            session['MFAkey'] = user.MFAkey
+            return render_template('accounts/MFA_setup.html', form=form, secret= session['MFAkey'],qr_code=pyotp.totp.TOTP(user.MFAkey).provisioning_uri(user.email,'CSC2031 Blog web page'))
 
-    return render_template('accounts/MFA_setup.html', form=form)
+    return render_template('accounts/MFA_setup.html', form=form, secret= session['MFAkey'], qr_code=session['user_uri'])
 
 @accounts_bp.route('/account')
 def account():

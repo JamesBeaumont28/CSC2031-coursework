@@ -6,13 +6,16 @@
     <P>Open Microsoft Authenticator on your phone.</P>
     <p>Alternative download<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en-US">Google Authenticator</a> on your phone.</p>
     <p>Select a new account.</p>
-    <p>Manually enter the code below.</p>
+    <p>Manually enter the code below or scan the QR code in the app.</p>
     </div>
     <div style="align-items: center; font-size: 28px;">
         <hr>
         <p>Code</p>
         {{secret}}
         <hr>
+        {%if qr_code != "No user loaded"%}
+        <img src="{{qrcode(qr_code, box_size=5, border=5)}}" alt="NO QR code found">
+        {%endif%}
     </div>
     <form method="POST">
                 <div class="p-2 bg-light border border-primary">

@@ -17,11 +17,14 @@ from datetime import datetime
 #date and time
 import datetime
 from wtforms.validators import length
-
 from accounts.forms import LoginForm
 
+#QRCODE READER
+from flask_qrcode import QRcode
 app = Flask(__name__)
 
+#initilizing the qrcode reader
+QRcode(app)
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 

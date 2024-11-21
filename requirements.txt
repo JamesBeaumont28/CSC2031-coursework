@@ -22,6 +22,9 @@ requests
 
 #libary for authentication request limit EX 10
 Flask-Limiter
+
+#libaries for MFA
 pyotp
+flask-qrcode
 
 
