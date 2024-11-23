@@ -27,4 +27,6 @@ Flask-Limiter
 pyotp
 flask-qrcode
 
+#login manager
+flask_login
 

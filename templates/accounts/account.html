@@ -1,5 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Accounts</h1>
+    <body style="text-align: center; margin: 20px;">
+
+
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="text-align: left" class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
+                <span>&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endwith %}
+    </div>
+    <div style="border: 1px solid #ccc; padding: 20px; max-width: 400px; margin: 0 auto;">
+        <h1 style="font-size: 24px; margin-bottom: 20px;">Account</h1>
+        <div style="text-align: left; margin: 10px 0;"><strong>ID:</strong> {{ current_user.id or "None" }}</div>
+        <div style="text-align: left; margin: 10px 0;"><strong>Email:</strong> {{ current_user.email or "None" }}</div>
+        <div style="text-align: left; margin: 10px 0;"><strong>First Name:</strong> {{ current_user.firstname or "None" }}</div>
+        <div style="text-align: left; margin: 10px 0;"><strong>Last Name:</strong> {{ current_user.lastname or "None" }}</div>
+        <div style="text-align: left; margin: 10px 0;"><strong>Phone Number:</strong> {{ current_user.phone or "None" }}</div>
+        {%if current_user.posts != Null %}
+            {% for post in current_user.posts %}
+                <p1>hello world</p1>
+                <div class="card border border-dark">
+
+                    <div class="card-header bg-dark text-white border border-dark">
+                    <h4>{{ post.title }}</h4>
+                    <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
+                    <small>Auther: {{post.user.firstname}} {{post.user.lastname}}</small>
+                    </div>
+                    <div class="card-body">{{ post.body }}
+                    </div>
+                        <div class="card-footer">
+                            <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                            <a class="navbar-item" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                        </div>
+                </div>
+                <br>
+            {% endfor %}
+        {%else%}
+            <div style="text-align: left; margin: 10px 0;"><strong>Phone Number:</strong> None</div>
+        {% endif %}
+    </div>
+    <br>
+    {% if not current_user.is_authenticated %}
+        <a href="/login">Login</a>
+    {% else %}
+        <a href="/logout">Logout</a>
+    {% endif %}
+</body>
+
 {% endblock %}

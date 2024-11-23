@@ -1,16 +1,20 @@
 from flask import Blueprint, render_template, flash, url_for, redirect
-from config import db, Post
+from flask_login import login_required, login_manager, current_user
+from sqlalchemy.sql.functions import current_user
+
+from config import db, Post, login_manager
 from posts.forms import PostForm
 from sqlalchemy import desc
 
 posts_bp = Blueprint('posts', __name__, template_folder='templates')
 
 @posts_bp.route('/create', methods=('GET', 'POST'))
+@login_required
 def create():
     form = PostForm()
 
     if form.validate_on_submit():
-        new_post = Post(title=form.title.data, body=form.body.data)
+        new_post = Post(user_id=current_user.id ,title=form.title.data, body=form.body.data)
         db.session.add(new_post)
         db.session.commit()
         flash('Post created', category='success')

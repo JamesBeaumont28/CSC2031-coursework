@@ -25,6 +25,7 @@
                     <div class="card-header bg-dark text-white border border-dark">
                     <h4>{{ post.title }}</h4>
                     <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
+                    <small>Auther: {{post.user.firstname}} {{post.user.lastname}}</small>
                     </div>
                     <div class="card-body">{{ post.body }}
                     </div>
