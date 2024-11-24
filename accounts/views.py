@@ -1,17 +1,14 @@
-from flask import Blueprint, render_template, flash, redirect, url_for,jsonify,request,session
+import flask_login
+import pyotp
 import requests
+from flask import Blueprint, render_template, flash, redirect, url_for, request, session
+from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import login_required, current_user, login_user
+from flask_login import login_required, current_user
 from markupsafe import Markup
-from sqlalchemy import nullsfirst
 
 from accounts.forms import RegistrationForm, LoginForm, MFAForm
-from config import User, db, login_manager
-
-from flask_limiter import Limiter
-
-import pyotp
-import flask_qrcode
+from config import User, db
 
 limiter = Limiter(get_remote_address)
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
@@ -19,6 +16,8 @@ accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 @accounts_bp.route('/registration',methods=['GET','POST'])
 def registration():
     form = RegistrationForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('accounts.account'))
 
     if form.validate_on_submit():
 
@@ -51,7 +50,11 @@ def registration():
 
 @accounts_bp.route('/login',methods=['GET','POST'])
 @limiter.limit("2 per minute,200 per day", error_message='Too many requests have been sent. Please come back later and try again.')
+
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('accounts.account'))
+
     form = LoginForm()
     data = {
         "secret": "6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd",
@@ -65,7 +68,7 @@ def login():
 
     if form.validate_on_submit():
 
-        user = User.query.filter_by(User.email == form.email.data).first()
+        user = User.query.filter(User.email == form.email.data).first()
         if user is None:
             flash('email is not registered, please register to login',category='danger')
             return redirect('/registration')
@@ -97,8 +100,8 @@ def login():
                 return render_template('accounts/login.html', form=form)
 
         elif user.password == form.password.data:
-            login_user(user, remember=True)
-            print("Has a user been loaded :",current_user.email)
+            flask_login.login_user(user, remember=True)
+            print("Has a user been loaded :",flask_login.current_user.email)
             session['authentication_attempts'] = 0
             flash('Login Successful', category='success')
             return redirect(url_for('accounts.account'))
@@ -112,6 +115,10 @@ def unlock():
 
 @accounts_bp.route('/MFA_setup', methods=['GET', 'POST'])
 def MFA_setup():
+    if not flask_login.current_user.is_authenticated():
+        flash('You are already logged in',category='danger')
+        return redirect(url_for('accounts.account'))
+
     form = MFAForm()
     if 'user_uri' not in session:
         session['user_uri'] = "No user loaded"
@@ -142,8 +149,7 @@ def MFA_setup():
     return render_template('accounts/MFA_setup.html', form=form, secret= session['MFAkey'], qr_code=session['user_uri'])
 
 @accounts_bp.route('/account')
+@login_required
 def account():
-    print("i ma ")
-    user = User.query.filter(User.email == "jamesbeaumont28@gmail.com").first()
-    login_user(user)
+    #login_user(User.query.filter(User.email == "jamesbeaumont28@gmail.com").first())
     return render_template('accounts/account.html')

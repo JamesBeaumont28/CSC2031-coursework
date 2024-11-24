@@ -1,3 +1,4 @@
+import flask_login
 from flask import Flask, url_for, jsonify, render_template, flash
 
 from flask_admin import Admin
@@ -7,6 +8,7 @@ import secrets
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager, UserMixin, logout_user
 
 #database import
 from flask_sqlalchemy import SQLAlchemy
@@ -27,7 +29,6 @@ from flask_qrcode import QRcode
 app = Flask(__name__)
 
 #login manager
-from flask_login import UserMixin, LoginManager, current_user, login_required, logout_user
 
 #initilizing the qrcode reader
 QRcode(app)
@@ -189,7 +190,7 @@ app.register_blueprint(security_bp)
 @app.route("/logout")
 #@login_required
 def logout():
-    print(current_user.name)
+    print(flask_login.current_user.id)
     logout_user()
     flash('successfully Logged out', category='success')
     return redirect("/login")
