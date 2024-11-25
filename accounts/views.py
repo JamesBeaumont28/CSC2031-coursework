@@ -4,7 +4,7 @@ import requests
 from flask import Blueprint, render_template, flash, redirect, url_for, request, session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, login_user
 from markupsafe import Markup
 
 from accounts.forms import RegistrationForm, LoginForm, MFAForm
@@ -16,7 +16,9 @@ accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 @accounts_bp.route('/registration',methods=['GET','POST'])
 def registration():
     form = RegistrationForm()
+
     if current_user.is_authenticated:
+        flash('You are already logged in.','success')
         return redirect(url_for('accounts.account'))
 
     if form.validate_on_submit():
@@ -52,7 +54,9 @@ def registration():
 @limiter.limit("2 per minute,200 per day", error_message='Too many requests have been sent. Please come back later and try again.')
 
 def login():
+
     if current_user.is_authenticated:
+        flash('You are already logged in.', 'success')
         return redirect(url_for('accounts.account'))
 
     form = LoginForm()
@@ -101,7 +105,7 @@ def login():
 
         elif user.password == form.password.data:
             flask_login.login_user(user, remember=True)
-            print("Has a user been loaded :",flask_login.current_user.email)
+            #print("Has a user been loaded :",flask_login.current_user.email,"-----------------------------------------------------------------------")
             session['authentication_attempts'] = 0
             flash('Login Successful', category='success')
             return redirect(url_for('accounts.account'))
@@ -152,5 +156,4 @@ def MFA_setup():
 @accounts_bp.route('/account')
 @login_required
 def account():
-    #login_user(User.query.filter(User.email == "jamesbeaumont28@gmail.com").first())
     return render_template('accounts/account.html')

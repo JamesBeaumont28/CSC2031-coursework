@@ -8,16 +8,13 @@ import secrets
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import LoginManager, UserMixin, logout_user
+from flask_login import LoginManager, UserMixin, logout_user, login_required
 
 #database import
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import MetaData, false, nullsfirst
 from datetime import datetime
-
-#date and time
-import datetime
 
 from werkzeug.utils import redirect
 from wtforms.validators import length
@@ -76,7 +73,7 @@ class Post(db.Model):
         self.title = title
         self.body = body
         self.userid = user_id
-        self.user = User.query.filter(user_id == id).first()
+        self.user = User.query.filter(User.id == user_id).first()
 
     def update(self, title, body):
         self.created = datetime.now()
@@ -98,9 +95,10 @@ class User(db.Model, UserMixin):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
 
-    #MFA info
+    #Authentication info
     MFAkey = db.Column(db.String(32), nullable=False)
     MFA_enabled = db.Column(db.Boolean(), nullable=False)
+    #role = db.Column()
 
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
@@ -115,10 +113,9 @@ class User(db.Model, UserMixin):
         self.MFA_enabled = MFA_enabled
 
     @login_manager.user_loader
-    def load_user(self,user_id):
-        return User.query.filter(user_id == id).first()
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
-    @login_manager.
 
     def verify_password(submitted_password):
         if User.query.filter_by(password=submitted_password).first() is None:
@@ -162,32 +159,12 @@ class PostView(ModelView):
     column_hide_backrefs = False
     column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
 
-    def is_accessible(self):
-        if not flask_login.current_user.is_authenticated():
-            return False
-        else:
-            return True
-
-    def inaccessible_callback(self, name, **kwargs):
-        flash('Database admin privileges required', category='danger')
-        return redirect(url_for('accounts.login'))
 
 class UserView(ModelView):
     column_display_pk = True  # optional, but I like to see the IDs in the list
     column_hide_backrefs = False
     column_list = (
     'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFA key', 'MFA activated')
-
-    def is_accessible(self):
-        if not flask_login.current_user.is_authenticated():
-            return False
-        else:
-            return True
-
-    def inaccessible_callback(self, name, **kwargs):
-        flash('Database admin privileges required', category='danger')
-        return redirect(url_for('accounts.login'))
-
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
@@ -207,9 +184,8 @@ app.register_blueprint(security_bp)
 
 
 @app.route("/logout")
-#@login_required
+@login_required
 def logout():
-    print(flask_login.current_user.id)
     logout_user()
     flash('successfully Logged out', category='success')
     return redirect("/login")

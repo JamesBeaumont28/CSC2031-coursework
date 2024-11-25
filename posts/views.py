@@ -11,11 +11,9 @@ from sqlalchemy import desc
 posts_bp = Blueprint('posts', __name__, template_folder='templates')
 
 @posts_bp.route('/create', methods=('GET', 'POST'))
-#@login_required
+@login_required
 def create():
     form = PostForm()
-    user = User.query.filter(User.email == "jamesbeaumont28@gmail.com").first()
-    login_user(user)
     if form.validate_on_submit():
         new_post = Post(user_id=flask_login.current_user.id ,title=form.title.data, body=form.body.data)
         db.session.add(new_post)
@@ -26,20 +24,20 @@ def create():
     return render_template('posts/create.html', form=form)
 
 @posts_bp.route('/posts')
-#@login_required
+@login_required
 def posts():
     all_posts = Post.query.order_by(desc('id')).all()
     return render_template('posts/posts.html', posts=all_posts)
 
 @posts_bp.route('/<int:id>/update', methods=('GET', 'POST'))
-#@login_required
+@login_required
 def update(id):
 
     post_to_update = Post.query.filter_by(id=id).first()
 
     if post_to_update.userid != flask_login.current_user.id:
         flash('You cannot edit other people posts', category='danger')
-        return redirect(url_for('accounts.login'))
+        return redirect(url_for('posts.posts'))
 
     if not post_to_update:
         return redirect(url_for('posts.posts'))
@@ -58,12 +56,12 @@ def update(id):
     return render_template('posts/update.html', form=form)
 
 @posts_bp.route('/<int:id>/delete')
-#@login_required
+@login_required
 def delete(id):
     post = Post.query.filter_by(id=id).first()
-    if post.user_id != flask_login.current_user.id:
+    if post.userid != flask_login.current_user.id:
         flash('You cannot delete another persons post.',category='danger')
-        return redirect('posts.posts')
+        return redirect(url_for('posts.posts'))
     else:
         post.delete()
         db.session.commit()
