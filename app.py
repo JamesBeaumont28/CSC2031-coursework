@@ -37,5 +37,8 @@ def update():
 def security():
     return render_template('security/security.html')
 
+def verify_role(f):
+    return
+
 if __name__ == '__main__':
     app.run()

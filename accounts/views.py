@@ -115,9 +115,10 @@ def unlock():
 
 @accounts_bp.route('/MFA_setup', methods=['GET', 'POST'])
 def MFA_setup():
-    if not flask_login.current_user.is_authenticated():
-        flash('You are already logged in',category='danger')
-        return redirect(url_for('accounts.account'))
+
+    #if not flask_login.current_user.is_authenticated:
+        #flash('You are already logged in',category='danger')
+        #return redirect(url_for('accounts.account'))
 
     form = MFAForm()
     if 'user_uri' not in session:

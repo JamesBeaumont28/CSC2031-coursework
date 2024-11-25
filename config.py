@@ -101,7 +101,6 @@ class User(db.Model, UserMixin):
     #MFA info
     MFAkey = db.Column(db.String(32), nullable=False)
     MFA_enabled = db.Column(db.Boolean(), nullable=False)
-    is_active = db.Column(db.Boolean(), nullable=False)
 
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
@@ -114,11 +113,12 @@ class User(db.Model, UserMixin):
         self.password = password
         self.MFAkey = MFAkey
         self.MFA_enabled = MFA_enabled
-        self.is_active = True
 
     @login_manager.user_loader
-    def load_user(user_id):
+    def load_user(self,user_id):
         return User.query.filter(user_id == id).first()
+
+    @login_manager.
 
     def verify_password(submitted_password):
         if User.query.filter_by(password=submitted_password).first() is None:
@@ -162,12 +162,31 @@ class PostView(ModelView):
     column_hide_backrefs = False
     column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
 
+    def is_accessible(self):
+        if not flask_login.current_user.is_authenticated():
+            return False
+        else:
+            return True
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('Database admin privileges required', category='danger')
+        return redirect(url_for('accounts.login'))
 
 class UserView(ModelView):
     column_display_pk = True  # optional, but I like to see the IDs in the list
     column_hide_backrefs = False
     column_list = (
-    'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFA key', 'MFA activated', 'active')
+    'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFA key', 'MFA activated')
+
+    def is_accessible(self):
+        if not flask_login.current_user.is_authenticated():
+            return False
+        else:
+            return True
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('Database admin privileges required', category='danger')
+        return redirect(url_for('accounts.login'))
 
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
