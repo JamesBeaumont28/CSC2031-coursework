@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import flask_login
 import pyotp
 import requests
@@ -6,9 +8,10 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import login_required, current_user, login_user
 from markupsafe import Markup
+from pyexpat.errors import messages
 
 from accounts.forms import RegistrationForm, LoginForm, MFAForm
-from config import User, db
+from config import User, db, Log, logger
 
 limiter = Limiter(get_remote_address)
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
@@ -42,6 +45,10 @@ def registration():
 
         db.session.add(new_user)
         db.session.commit()
+        User.generate_log(new_user_id=new_user.id)
+        db.session.commit()
+
+        logger.warning(msg='[User:{}] Successfully registered'.format(new_user.email))
 
         flash('Account Created. You must enable Multi-factor authentication first to login', category='success')
         session['user_uri'] = pyotp.totp.TOTP(new_user.MFAkey).provisioning_uri(new_user.email, 'CSC2031 Blog web page')
@@ -77,23 +84,26 @@ def login():
             flash('email is not registered, please register to login',category='danger')
             return redirect('/registration')
 
-        elif not user.password == form.password.data:
+        elif not user.password == form.password.data or result == 'success':
 
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
 
             #change at end to 3
-            if session.get('authentication_attempts') >= 333:
+            if session.get('authentication_attempts') >= 3:
+                logger.warning(msg='User:{} reached maximum login attempts.'.format(user.email))
                 flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")
                 return render_template('accounts/login.html')
 
             else:
                 flash('Your login details incorrect please try again, ' + format(
                 3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
+                logger.warning(msg = 'User:{} Login details were incorrect.'.format(user.email))
                 return render_template('accounts/login.html', form=form)
 
         elif not pyotp.totp.TOTP(user.MFAkey).now() == form.pin.data:
             if not user.MFA_enabled:
                 flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
+                logger.warning(msg='User:{} tried to login without enabling MFA.'.format(user.email))
                 session['user_uri'] = pyotp.totp.TOTP(user.MFAkey).provisioning_uri(user.email, 'CSC2031 Blog web page')
                 session['MFAkey'] = user.MFAkey
                 return redirect('MFA_setup')
@@ -101,14 +111,29 @@ def login():
                 session['authentication_attempts'] = session.get('authentication_attempts') + 1
                 flash('Your pin is incorrect please try again, ' + format(
                     3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
+                logger.warning(msg='User:{} Submitted incorrect MFA pin.'.format(user.email))
                 return render_template('accounts/login.html', form=form)
 
         elif user.password == form.password.data:
             flask_login.login_user(user, remember=True)
-            #print("Has a user been loaded :",flask_login.current_user.email,"-----------------------------------------------------------------------")
             session['authentication_attempts'] = 0
+            logintime = user.log.recentLoginTime
+            user.log.prevLoginTime = logintime
+            user.log.recentLoginTime = datetime.now()
+            user.log.prevIP = user.log.latestIP
+            user.log.latestIP = request.remote_addr
+            db.session.commit()
+
+            logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Successfully logged in'.format(user.email,user.role,user.log.latestIP))
+
             flash('Login Successful', category='success')
-            return redirect(url_for('accounts.account'))
+
+            if current_user.role == "end_user":
+                return redirect(url_for('accounts.account'))
+            elif current_user.role == "db_admin":
+                return redirect("http://127.0.0.1:5000/admin")
+            else:
+                return redirect(url_for('security.security'))
 
     return render_template('accounts/login.html', form=form)
 
@@ -142,6 +167,7 @@ def MFA_setup():
             user.MFA_enabled = True
             db.session.commit()
             flash('Multi-Factor authentication activated, redirecting to login page.', category='success')
+            logger.warning(msg='[User:{}] Successfully activated MFA'.format(user.email))
             return redirect(url_for('accounts.login'))
         elif user.MFA_enabled:
             flash('Multi-Factor authentication has already been verified.', category='success')

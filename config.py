@@ -1,5 +1,7 @@
+from functools import wraps
+
 import flask_login
-from flask import Flask, url_for, jsonify, render_template, flash
+from flask import Flask, url_for, jsonify, render_template, flash, request
 
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -8,24 +10,26 @@ import secrets
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import LoginManager, UserMixin, logout_user, login_required
+from flask_login import LoginManager, UserMixin, logout_user, login_required, current_user
 
 #database import
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import MetaData, false, nullsfirst
+from sqlalchemy import MetaData, false, nullsfirst, Enum
+
 from datetime import datetime
 
+from sqlalchemy.dialects.postgresql import INET
 from werkzeug.utils import redirect
 from wtforms.validators import length
 from accounts.forms import LoginForm
+
+import logging
 
 #QRCODE READER
 from flask_qrcode import QRcode
 
 app = Flask(__name__)
-
-#login manager
 
 #initilizing the qrcode reader
 QRcode(app)
@@ -56,6 +60,16 @@ metadata = MetaData(
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
 
+#security logger
+logger = logging.getLogger('securityLog')
+
+handler = logging.FileHandler('securityLog.log','w')
+handler.setLevel(logging.WARNING)
+
+formatter = logging.Formatter('%(asctime)s : %(message)s','%d/%m/%Y %I:%M:%S %p')
+
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 # DATABASE TABLES
 class Post(db.Model):
@@ -98,10 +112,11 @@ class User(db.Model, UserMixin):
     #Authentication info
     MFAkey = db.Column(db.String(32), nullable=False)
     MFA_enabled = db.Column(db.Boolean(), nullable=False)
-    #role = db.Column()
+    role = db.Column(Enum('end_user', 'db_admin', 'sec_admin', name='role'), nullable=False, default='end_user')
 
-    # User posts
+    # Db relationships
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
+    log = db.relationship("Log",uselist=False,back_populates="user")
 
     def __init__(self, email, firstname, lastname, phone, password, MFAkey, MFA_enabled):
         self.email = email
@@ -111,6 +126,12 @@ class User(db.Model, UserMixin):
         self.password = password
         self.MFAkey = MFAkey
         self.MFA_enabled = MFA_enabled
+
+    def generate_log(new_user_id):
+        print("in gen log user id is ",new_user_id,"=====================================================")
+        new_log = Log(user_id=new_user_id)
+        db.session.add(new_log)
+        #db.session.commit()
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -124,6 +145,8 @@ class User(db.Model, UserMixin):
             return True
 
     def password_integrity_check(submitted_password):
+        #REMOVE TRIS BEFORE SUBMITION------------------------------------------------------------------------------
+        return True
         if len(submitted_password) < 8 or len(submitted_password) > 15:
             return False
         print("i am running")
@@ -147,6 +170,48 @@ class User(db.Model, UserMixin):
         else:
             return True
 
+class Log(db.Model):
+    __tablename__ = 'logs'
+
+    #IDs
+    id = db.Column(db.Integer, primary_key=True)
+    userid = db.Column(db.Integer, db.ForeignKey('users.id'))
+    #Times
+    userRegTime = db.Column(db.DateTime,nullable = False, default=datetime.now())
+    recentLoginTime = db.Column(db.DateTime,nullable = False, default=datetime.now())
+    prevLoginTime = db.Column(db.DateTime,nullable = False, default=datetime.now())
+
+    #IPs
+    latestIP = db.Column(db.String(15))
+    prevIP = db.Column(db.String(15))
+
+    #the User it is logging
+    user = db.relationship("User", back_populates="log")
+
+    def __init__(self,user_id):
+        print("the id passed in is ",user_id, "---------------------------------------")
+
+        self.userRegTime = datetime.now()
+        self.latestIP = request.remote_addr
+        self.userid = user_id
+        self.user = User.query.filter(User.id == user_id).first()
+
+def role_required(role):
+    def inner_decorator(f):
+        @wraps(f)
+        def wrapped(*args,**kwargs):
+            if current_user.role != role:
+                flash('You do not have permissions to access this page.',category='danger')
+                logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Tried to access forbidden site'.format(current_user.email,current_user.role,current_user.log.latestIP))
+                return redirect(url_for('accounts.account'))
+            else:
+                return f(*args,**kwargs)
+        return wrapped
+    return inner_decorator
+
+
+
+
 
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
@@ -159,18 +224,83 @@ class PostView(ModelView):
     column_hide_backrefs = False
     column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
 
+    def is_accessible(self):
+        if not current_user.is_authenticated:
+            flash('You must login to an authorised account to access this page.', category='danger')
+            logger.warning(msg='Anonymous user attempted to access forbidden site.')
+            return False
+
+        elif current_user.role != "db_admin":
+            flash('You do not have permissions to access this page.', category='danger')
+            logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Tried to access forbidden site'.format(current_user.email,current_user.role,current_user.log.latestIP))
+            return False
+        else:
+            return True
+
+    def is_visible(self):
+        if current_user.role != "db_admin":
+            return False
+        else:
+            return True
+
+class LogView(ModelView):
+    column_display_pk = True  # optional, but I like to see the IDs in the list
+    column_hide_backrefs = False
+    column_list = (
+    'id','userid','userRegTime','recentLoginTime','prevLoginTime','latestIP','prevIP','user')
+
+    def is_accessible(self):
+        if not current_user.is_authenticated:
+            flash('You must login to an authorised account to access this page.', category='danger')
+            logger.warning(msg='Anonymous user attempted to access forbidden site.')
+            return False
+
+        elif current_user.role != "db_admin":
+            flash('You do not have permissions to access this page.', category='danger')
+            logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Tried to access forbidden site'.format(current_user.email,current_user.role,current_user.log.latestIP))
+            return False
+        else:
+            return True
+
+    def is_visible(self):
+        if current_user.role != "db_admin":
+            return False
+        else:
+            return True
 
 class UserView(ModelView):
     column_display_pk = True  # optional, but I like to see the IDs in the list
     column_hide_backrefs = False
     column_list = (
-    'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFA key', 'MFA activated')
+    'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFAkey', 'MFA_enabled','role','log')
+
+    def is_accessible(self):
+        if not current_user.is_authenticated:
+            flash('You must login to an authorised account to access this page.',category='danger')
+            logger.warning(msg='Anonymous user attempted to access forbidden site.')
+            return False
+
+        elif current_user.role != "db_admin":
+            flash('You do not have permissions to access this page.',category='danger')
+            logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Tried to access forbidden site'.format(current_user.email, current_user.role, current_user.log.latestIP))
+            return False
+        else:
+            return True
+
+    def is_visible(self):
+        if current_user.role != "db_admin":
+            return False
+        else:
+            return True
+
+
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
 admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
 admin.add_view(UserView(User, db.session))
+admin.add_view(LogView(Log, db.session))
 
 # IMPORT BLUEPRINTS
 from accounts.views import accounts_bp, login
@@ -188,6 +318,7 @@ app.register_blueprint(security_bp)
 def logout():
     logout_user()
     flash('successfully Logged out', category='success')
+    logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Successfully logged out'.format(user.email, user.role, user.log.latestIP))
     return redirect("/login")
 
 

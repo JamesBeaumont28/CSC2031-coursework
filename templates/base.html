@@ -17,17 +17,27 @@
 </style>
 
 <section class="container-fluid p-3 my-3">
+
     <nav class="nav nav-pills flex-column flex-sm-row">
+        {% if current_user.is_anonymous %}
         <a class="nav-item nav-link" href="{{ url_for('index') }}">Home</a>
         <a class="nav-item nav-link" href="{{ url_for('accounts.registration') }}">Registration</a>
         <a class="nav-item nav-link" href="{{ url_for('accounts.login') }}">Login</a>
+        {%elif current_user.is_authenticated and current_user.role == "end_user"%}
+        <a class="nav-item nav-link" href="{{ url_for('index') }}">Home</a>
         <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
         <a class="nav-item nav-link" href="{{ url_for('posts.posts') }}">posts</a>
         <a class="nav-item nav-link" href="{{ url_for('posts.create') }}">Create</a>
-        <a class="nav-item nav-link" href="{{ url_for('security.security') }}">Security</a>
+        <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
+        {%elif current_user.is_authenticated and current_user.role == "db_admin"%}
+        <a class="nav-item nav-link" href="{{ url_for('index') }}">Home</a>
+        <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
         <a class="nav-item nav-link" href="http://127.0.0.1:5000/admin">DB Admin</a>
-
-        {% if not current_user.is_anonymous %}
+        <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
+        {%else%}
+        <a class="nav-item nav-link" href="{{ url_for('index') }}">Home</a>
+        <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
+        <a class="nav-item nav-link" href="{{ url_for('security.security') }}">Security</a>
         <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
         {% endif %}
     </nav>

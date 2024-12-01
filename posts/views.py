@@ -4,7 +4,7 @@ from flask_login import login_user, login_required
 from sqlalchemy.sql.functions import current_user
 from unicodedata import category
 
-from config import db, Post, login_manager, User
+from config import db, Post, login_manager, User, role_required
 from posts.forms import PostForm
 from sqlalchemy import desc
 
@@ -12,6 +12,7 @@ posts_bp = Blueprint('posts', __name__, template_folder='templates')
 
 @posts_bp.route('/create', methods=('GET', 'POST'))
 @login_required
+@role_required('end_user')
 def create():
     form = PostForm()
     if form.validate_on_submit():
@@ -25,12 +26,14 @@ def create():
 
 @posts_bp.route('/posts')
 @login_required
+@role_required('end_user')
 def posts():
     all_posts = Post.query.order_by(desc('id')).all()
     return render_template('posts/posts.html', posts=all_posts)
 
 @posts_bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
+@role_required('end_user')
 def update(id):
 
     post_to_update = Post.query.filter_by(id=id).first()
@@ -57,6 +60,7 @@ def update(id):
 
 @posts_bp.route('/<int:id>/delete')
 @login_required
+@role_required('end_user')
 def delete(id):
     post = Post.query.filter_by(id=id).first()
     if post.userid != flask_login.current_user.id:
