@@ -28,6 +28,7 @@ pyotp
 flask-qrcode
 
 #login manager
-
 flask_login
 
+#hasher
+argon2-cffi

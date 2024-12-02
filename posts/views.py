@@ -4,7 +4,7 @@ from flask_login import login_user, login_required
 from sqlalchemy.sql.functions import current_user
 from unicodedata import category
 
-from config import db, Post, login_manager, User, role_required
+from config import db, Post, login_manager, User, role_required, logger
 from posts.forms import PostForm
 from sqlalchemy import desc
 
@@ -20,6 +20,7 @@ def create():
         db.session.add(new_post)
         db.session.commit()
         flash('Post created', category='success')
+        logger.warning(msg='[User:{},IP Address: {}] Successfully created a post {}.'.format(current_user.email,current_user.log.latestIP,current_user.posts.title))
         return redirect(url_for('posts.posts'))
 
     return render_template('posts/create.html', form=form)
@@ -40,6 +41,7 @@ def update(id):
 
     if post_to_update.userid != flask_login.current_user.id:
         flash('You cannot edit other people posts', category='danger')
+        logger.warning(msg = '[User:{}] Tried to edit post they dont have permissions to do so.'.format(current_user.email))
         return redirect(url_for('posts.posts'))
 
     if not post_to_update:
@@ -65,6 +67,7 @@ def delete(id):
     post = Post.query.filter_by(id=id).first()
     if post.userid != flask_login.current_user.id:
         flash('You cannot delete another persons post.',category='danger')
+        logger.warning(msg='[User:{}] Tried to delete a post that they dont have permissions to do so.'.format(current_user.email))
         return redirect(url_for('posts.posts'))
     else:
         post.delete()

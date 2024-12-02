@@ -1,5 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+
+        table {
+            width: 60%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            align-items: center;
+        }
+
+        th {
+            background-color: #2e3b42;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+        }
+    </style>
     <h1>Security</h1>
+    <div style="align-items: center;">
+        <table>
+            <tr>
+                <th>Last 10 Security Log Entries</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}

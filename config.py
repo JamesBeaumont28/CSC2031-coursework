@@ -28,7 +28,8 @@ import logging
 
 #QRCODE READER
 from flask_qrcode import QRcode
-
+#Hasher
+from argon2 import PasswordHasher
 app = Flask(__name__)
 
 #initilizing the qrcode reader
@@ -63,13 +64,19 @@ migrate = Migrate(app, db)
 #security logger
 logger = logging.getLogger('securityLog')
 
-handler = logging.FileHandler('securityLog.log','w')
+handler = logging.FileHandler('securityLog.log','a')
 handler.setLevel(logging.WARNING)
 
 formatter = logging.Formatter('%(asctime)s : %(message)s','%d/%m/%Y %I:%M:%S %p')
 
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+#password hasher
+ph = PasswordHasher()
+
+#symetric encryption
+
 
 # DATABASE TABLES
 class Post(db.Model):
@@ -123,12 +130,11 @@ class User(db.Model, UserMixin):
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
-        self.password = password
+        self.password = ph.hash(password)
         self.MFAkey = MFAkey
         self.MFA_enabled = MFA_enabled
 
     def generate_log(new_user_id):
-        print("in gen log user id is ",new_user_id,"=====================================================")
         new_log = Log(user_id=new_user_id)
         db.session.add(new_log)
         #db.session.commit()
@@ -138,8 +144,8 @@ class User(db.Model, UserMixin):
         return User.query.get(int(user_id))
 
 
-    def verify_password(submitted_password):
-        if User.query.filter_by(password=submitted_password).first() is None:
+    def verify_password(user,submitted_password):
+        if not ph.verify(user.password,submitted_password):
             return False
         else:
             return True
@@ -189,8 +195,6 @@ class Log(db.Model):
     user = db.relationship("User", back_populates="log")
 
     def __init__(self,user_id):
-        print("the id passed in is ",user_id, "---------------------------------------")
-
         self.userRegTime = datetime.now()
         self.latestIP = request.remote_addr
         self.userid = user_id
@@ -316,9 +320,9 @@ app.register_blueprint(security_bp)
 @app.route("/logout")
 @login_required
 def logout():
+    logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Successfully logged out'.format(current_user.email, current_user.role,current_user.log.latestIP))
     logout_user()
     flash('successfully Logged out', category='success')
-    logger.warning(msg='[User:{}, Role:{}, IP Address:{}] Successfully logged out'.format(user.email, user.role, user.log.latestIP))
     return redirect("/login")
 
 

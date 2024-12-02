@@ -1,0 +1,29 @@
+02/12/2024 11:35:51 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:36:35 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:36:52 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 11:36:59 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:40:05 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 11:40:08 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:42:20 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 11:42:23 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:54:52 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:55:20 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:55:48 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 11:59:57 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:00:26 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:00:44 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:01:04 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:02:53 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:10:35 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:50:03 PM : User:e Login details were incorrect.
+02/12/2024 12:51:08 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:51:15 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 12:51:22 PM : [User:w] Successfully registered
+02/12/2024 12:51:44 PM : [User:w] Successfully activated MFA
+02/12/2024 12:51:50 PM : User:w Login details were incorrect.
+02/12/2024 12:51:54 PM : User:w Login details were incorrect.
+02/12/2024 12:52:05 PM : User:w reached maximum login attempts.
+02/12/2024 12:52:17 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 12:53:29 PM : User:w Login details were incorrect.
+02/12/2024 12:54:56 PM : User:w Login details were incorrect.
+02/12/2024 12:56:21 PM : [User:w, Role:db_admin, IP Address:127.0.0.1] Successfully logged in

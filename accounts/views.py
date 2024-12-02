@@ -83,8 +83,8 @@ def login():
         if user is None:
             flash('email is not registered, please register to login',category='danger')
             return redirect('/registration')
-
-        elif not user.password == form.password.data or result == 'success':
+        #ADD BACK IN THE OR BEFORE SUBMISSION==============================================================================================================
+        elif not User.verify_password(user,form.password.data): #or result == 'success'
 
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
 
@@ -99,8 +99,8 @@ def login():
                 3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
                 logger.warning(msg = 'User:{} Login details were incorrect.'.format(user.email))
                 return render_template('accounts/login.html', form=form)
-
-        elif not pyotp.totp.TOTP(user.MFAkey).now() == form.pin.data:
+        #ADD A NOT HERE BEFORE SUBMISSION====================================================================================================================
+        elif pyotp.totp.TOTP(user.MFAkey).now() == form.pin.data:
             if not user.MFA_enabled:
                 flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
                 logger.warning(msg='User:{} tried to login without enabling MFA.'.format(user.email))
@@ -114,7 +114,7 @@ def login():
                 logger.warning(msg='User:{} Submitted incorrect MFA pin.'.format(user.email))
                 return render_template('accounts/login.html', form=form)
 
-        elif user.password == form.password.data:
+        else:
             flask_login.login_user(user, remember=True)
             session['authentication_attempts'] = 0
             logintime = user.log.recentLoginTime
