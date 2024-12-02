@@ -1,8 +1,11 @@
 from datetime import datetime
+from hashlib import scrypt
+
 
 import flask_login
 import pyotp
 import requests
+from fernet import Fernet
 from flask import Blueprint, render_template, flash, redirect, url_for, request, session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -83,8 +86,9 @@ def login():
         if user is None:
             flash('email is not registered, please register to login',category='danger')
             return redirect('/registration')
+
         #ADD BACK IN THE OR BEFORE SUBMISSION==============================================================================================================
-        elif not User.verify_password(user,form.password.data): #or result == 'success'
+        if not User.verify_password(user,form.password.data): #or result == 'success'
 
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
 

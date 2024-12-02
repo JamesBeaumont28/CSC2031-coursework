@@ -1,29 +1,45 @@
-02/12/2024 11:35:51 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:36:35 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:36:52 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
-02/12/2024 11:36:59 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:40:05 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
-02/12/2024 11:40:08 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:42:20 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged out
-02/12/2024 11:42:23 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:54:52 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:55:20 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:55:48 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 11:59:57 AM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:00:26 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:00:44 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:01:04 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:02:53 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:10:35 PM : [User:q, Role:sec_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:50:03 PM : User:e Login details were incorrect.
-02/12/2024 12:51:08 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:51:15 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged out
-02/12/2024 12:51:22 PM : [User:w] Successfully registered
-02/12/2024 12:51:44 PM : [User:w] Successfully activated MFA
-02/12/2024 12:51:50 PM : User:w Login details were incorrect.
-02/12/2024 12:51:54 PM : User:w Login details were incorrect.
-02/12/2024 12:52:05 PM : User:w reached maximum login attempts.
-02/12/2024 12:52:17 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
-02/12/2024 12:53:29 PM : User:w Login details were incorrect.
-02/12/2024 12:54:56 PM : User:w Login details were incorrect.
-02/12/2024 12:56:21 PM : [User:w, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 08:44:08 PM : [User:e] Successfully registered
+02/12/2024 08:44:40 PM : [User:e] Successfully activated MFA
+02/12/2024 08:44:45 PM : [User:e, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 08:45:45 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:45:45 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:45:55 PM : [User:e, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 08:46:04 PM : [User:e, Role:end_user, IP Address:127.0.0.1] Tried to access forbidden site
+02/12/2024 08:46:04 PM : [User:e, Role:end_user, IP Address:127.0.0.1] Tried to access forbidden site
+02/12/2024 08:46:20 PM : [User:e, Role:end_user, IP Address:127.0.0.1] Tried to access forbidden site
+02/12/2024 08:47:11 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:11 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:16 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:16 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:19 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:19 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:26 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:26 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:40 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:41 PM : Anonymous user attempted to access forbidden site.
+02/12/2024 08:47:49 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 08:49:49 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 08:49:56 PM : [User:q] Successfully registered
+02/12/2024 08:50:12 PM : [User:q] Successfully activated MFA
+02/12/2024 08:50:18 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:03:56 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:04:29 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:07:13 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:08:53 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:38:15 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 09:40:15 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:02:31 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:03:07 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:12:30 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:13:46 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:15:59 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:17:10 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:17:18 PM : [User:q] Successfully created a post.
+02/12/2024 10:18:05 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:18:18 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 10:18:23 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:18:32 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 10:18:35 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged in
+02/12/2024 10:18:42 PM : [User:q] Successfully created a post.
+02/12/2024 10:18:43 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged out
+02/12/2024 10:18:47 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in

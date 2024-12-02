@@ -20,7 +20,7 @@ def create():
         db.session.add(new_post)
         db.session.commit()
         flash('Post created', category='success')
-        logger.warning(msg='[User:{},IP Address: {}] Successfully created a post {}.'.format(current_user.email,current_user.log.latestIP,current_user.posts.title))
+        logger.warning(msg='[User:{}] Successfully created a post.'.format(flask_login.current_user.email))
         return redirect(url_for('posts.posts'))
 
     return render_template('posts/create.html', form=form)
@@ -29,6 +29,7 @@ def create():
 @login_required
 @role_required('end_user')
 def posts():
+
     all_posts = Post.query.order_by(desc('id')).all()
     return render_template('posts/posts.html', posts=all_posts)
 
@@ -55,8 +56,8 @@ def update(id):
         flash('Post updated', category='success')
         return redirect(url_for('posts.posts'))
 
-    form.title.data = post_to_update.title
-    form.body.data = post_to_update.body
+    form.title.data = Post.decrypt_title(post_to_update)
+    form.body.data = Post.decrypt_body(post_to_update)
 
     return render_template('posts/update.html', form=form)
 
@@ -70,7 +71,7 @@ def delete(id):
         logger.warning(msg='[User:{}] Tried to delete a post that they dont have permissions to do so.'.format(current_user.email))
         return redirect(url_for('posts.posts'))
     else:
-        post.delete()
+        Post.query.filter_by(id=id).delete()
         db.session.commit()
         flash('Post deleted', category='success')
         return redirect(url_for('posts.posts'))

@@ -28,11 +28,11 @@
                 <div class="card border border-dark">
 
                     <div class="card-header bg-dark text-white border border-dark">
-                    <h4>{{ post.title }}</h4>
+                    <h4>{{ decrypt_title(post) }}</h4>
                     <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
                     <small>Auther: {{post.user.firstname}} {{post.user.lastname}}</small>
                     </div>
-                    <div class="card-body">{{ post.body }}
+                    <div class="card-body">{{ decrypt_body(post) }}
                     </div>
                         <div class="card-footer">
                             <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>

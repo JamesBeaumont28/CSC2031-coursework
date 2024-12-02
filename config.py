@@ -1,5 +1,15 @@
+import base64
+from hashlib import scrypt
+
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from cryptography.fernet import Fernet
+
+
+import base64
 from functools import wraps
 
+from cryptography.hazmat.primitives import kdf
+from fernet import Fernet
 import flask_login
 from flask import Flask, url_for, jsonify, render_template, flash, request
 
@@ -91,17 +101,51 @@ class Post(db.Model):
 
     def __init__(self, user_id, title, body):
         self.created = datetime.now()
-        self.title = title
-        self.body = body
         self.userid = user_id
         self.user = User.query.filter(User.id == user_id).first()
+        key = scrypt(password=current_user.password.encode(),
+                     salt=current_user.salt.encode(),
+                     n=2048,
+                     r=8,
+                     p=1,
+                     dklen=32)
+
+        cipher = Fernet(base64.urlsafe_b64encode(key))
+        self.title = cipher.encrypt(title)
+        self.body = cipher.encrypt(body)
 
     def update(self, title, body):
+        key = scrypt(password=self.user.password.encode(),
+                     salt=self.user.salt.encode(),
+                     n=2048,
+                     r=8,
+                     p=1,
+                     dklen=32)
+        cipher = Fernet(base64.urlsafe_b64encode(key))
         self.created = datetime.now()
-        self.title = title
-        self.body = body
+        self.title = cipher.encrypt(title)
+        self.body = cipher.encrypt(body)
         db.session.commit()
 
+    def decrypt_title(post):
+
+        key = scrypt(password=post.user.password.encode(),salt=post.user.salt.encode(),n=2048,r=8,p=1,dklen=32)
+
+        cipher = Fernet(base64.urlsafe_b64encode(key))
+
+        return cipher.decrypt(post.title).decode()
+
+    def decrypt_body(post):
+        key = scrypt(password=post.user.password.encode(),
+                     salt=post.user.salt.encode(),
+                     n=2048,
+                     r=8,
+                     p=1,
+                     dklen=32)
+
+        cipher = Fernet(base64.urlsafe_b64encode(key))
+
+        return cipher.decrypt(post.body).decode()
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -125,14 +169,20 @@ class User(db.Model, UserMixin):
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
     log = db.relationship("Log",uselist=False,back_populates="user")
 
+    #network encryption
+    salt =  db.Column(db.String(100),nullable = False)
+
+
     def __init__(self, email, firstname, lastname, phone, password, MFAkey, MFA_enabled):
+        self.salt = base64.b64encode(secrets.token_bytes(32)).decode()
+        self.password = ph.hash(password)
         self.email = email
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
-        self.password = ph.hash(password)
         self.MFAkey = MFAkey
         self.MFA_enabled = MFA_enabled
+
 
     def generate_log(new_user_id):
         new_log = Log(user_id=new_user_id)
@@ -199,6 +249,9 @@ class Log(db.Model):
         self.latestIP = request.remote_addr
         self.userid = user_id
         self.user = User.query.filter(User.id == user_id).first()
+
+    def decrypt_body(self):
+        return
 
 def role_required(role):
     def inner_decorator(f):
@@ -315,6 +368,9 @@ from security.views import security_bp
 app.register_blueprint(accounts_bp)
 app.register_blueprint(posts_bp)
 app.register_blueprint(security_bp)
+
+app.jinja_env.globals['decrypt_title'] = Post.decrypt_title
+app.jinja_env.globals['decrypt_body'] = Post.decrypt_body
 
 
 @app.route("/logout")
