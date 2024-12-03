@@ -1,9 +1,13 @@
 import base64
+import re
 from hashlib import scrypt
 
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.fernet import Fernet
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 import base64
 from functools import wraps
@@ -40,18 +44,20 @@ import logging
 from flask_qrcode import QRcode
 #Hasher
 from argon2 import PasswordHasher
+
 app = Flask(__name__)
 
 #initilizing the qrcode reader
 QRcode(app)
 # SECRET KEY FOR FLASK FORMS
-app.config['SECRET_KEY'] = secrets.token_hex(16)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
 
 # DATABASE CONFIGURATION
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['FLASK_ADMIN_FLUID_LAYOUT'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_ECHO'] = os.getenv('SQLALCHEMY_ECHO') == 'True'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS') == 'True'
+app.config['FLASK_ADMIN_FLUID_LAYOUT'] = os.getenv('FLASK_ADMIN_FLUID_LAYOUT')== 'True'
 
 #login manager
 login_manager = LoginManager()
@@ -226,6 +232,9 @@ class User(db.Model, UserMixin):
         else:
             return True
 
+    #def verify_email(email):
+
+
 class Log(db.Model):
     __tablename__ = 'logs'
 
@@ -381,7 +390,41 @@ def logout():
     flash('successfully Logged out', category='success')
     return redirect("/login")
 
+@app.before_request
+def waf_attack_detector():
+    conditions = {'SQL injection': re.compile(r'union|select|insert|drop|alter|;|`|\'', re.IGNORECASE),
+                  'XSS': re.compile(r'<script>|<iframe>|%3cscript%3e|%3ciframe%3e', re.IGNORECASE),
+                  'Path traversal': re.compile(r'\.\./|\.{2,}%2f|%2e%2e%2f', re.IGNORECASE)}
+
+    for attack_type, attack_pattern in conditions.items():
+        if attack_pattern.search(request.path) or attack_pattern.search(request.query_string.decode()):
+            logger.warning(msg='A {} attack was detected by the firewall.'.format(attack_type))
+            return render_template('errors/attack_warning.html',label = attack_type)
 
 @app.errorhandler(429)
 def ratelimit_error(e):
     return render_template('errors/429_error.html'), 429
+
+@app.errorhandler(400)
+def bad_request_error(e):
+    return render_template('errors/400_error.html'),400
+
+@app.errorhandler(404)
+def not_found_error(e):
+    return render_template('errors/404_error.html'),404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('errors/500_error.html'),500
+
+@app.errorhandler(501)
+def not_implemented_error(e):
+    return render_template('errors/501_error.html'),501
+
+@app.errorhandler(401)
+def unauthorized_error(e):
+    return render_template('errors/401_error.html'),401
+
+@app.errorhandler(403)
+def forbidden_error(e):
+    return render_template('errors/403_error.html'),403

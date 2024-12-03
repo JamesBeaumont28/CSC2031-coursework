@@ -43,3 +43,11 @@
 02/12/2024 10:18:42 PM : [User:q] Successfully created a post.
 02/12/2024 10:18:43 PM : [User:q, Role:end_user, IP Address:127.0.0.1] Successfully logged out
 02/12/2024 10:18:47 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+03/12/2024 12:39:36 PM : [User:jamesbeaumont28@gmail.com] Successfully registered
+03/12/2024 03:40:40 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged in
+03/12/2024 03:40:55 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Tried to access forbidden site
+03/12/2024 03:45:59 PM : [User:e, Role:db_admin, IP Address:127.0.0.1] Successfully logged out
+03/12/2024 03:46:02 PM : Anonymous user attempted to access forbidden site.
+03/12/2024 03:46:02 PM : Anonymous user attempted to access forbidden site.
+03/12/2024 03:46:02 PM : Anonymous user attempted to access forbidden site.
+03/12/2024 03:46:14 PM : Anonymous user attempted to access forbidden site.
