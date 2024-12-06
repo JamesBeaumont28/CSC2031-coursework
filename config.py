@@ -17,6 +17,8 @@ from fernet import Fernet
 import flask_login
 from flask import Flask, url_for, jsonify, render_template, flash, request
 
+from flask_talisman import Talisman
+
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
@@ -52,6 +54,13 @@ QRcode(app)
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+#Talisman setup
+csp = {'-style-src':['\'self\'',"'unsafe-inline'", "https://fonts.googleapis.com"],
+       'script-src':['\'self\'','https://www.google.com/recaptcha/','https://www.gstatic.com/recaptcha/', "'unsafe-inline'"],
+       'frame-src':['\'self\'','https://www.google.com/recaptcha/','https://recaptcha.google.com/recaptcha/'],
+       'font-src': ["'self'","https://fonts.gstatic.com"]
+       }
+talisman = Talisman(app,content_security_policy = csp)
 
 # DATABASE CONFIGURATION
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')

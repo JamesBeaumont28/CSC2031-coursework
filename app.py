@@ -41,4 +41,4 @@ def verify_role(f):
     return
 
 if __name__ == '__main__':
-    app.run(ssl_context=('cert.crt', 'cert.key'))
+    app.run(ssl_context=('cert.pem', 'key.pem'))
