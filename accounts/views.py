@@ -76,7 +76,7 @@ def login():
     }
     response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=data)
     result = response.json()
-
+    print("\nresult is: ",result,"=================================================\n")
     if 'authentication_attempts' not in session:
         session['authentication_attempts'] = 0
 
@@ -87,12 +87,10 @@ def login():
             flash('email is not registered, please register to login',category='danger')
             return redirect('/registration')
 
-        #ADD BACK IN THE OR BEFORE SUBMISSION==============================================================================================================
-        if not User.verify_password(user,form.password.data): #or result == 'success'
+        if not User.verify_password(user,form.password.data or not result == 'success'):
 
             session['authentication_attempts'] = session.get('authentication_attempts') + 1
 
-            #change at end to 3
             if session.get('authentication_attempts') >= 3:
                 logger.warning(msg='User:{} reached maximum login attempts.'.format(user.email))
                 flash('Maximum login attempts reached. Click ' + Markup("<a href = '/unlock'>here</a>") + ' to unlock account.', category="danger")
@@ -103,8 +101,8 @@ def login():
                 3 - session.get('authentication_attempts')) + ' attempts remaining', category="danger")
                 logger.warning(msg = 'User:{} Login details were incorrect.'.format(user.email))
                 return render_template('accounts/login.html', form=form)
-        #ADD A NOT HERE BEFORE SUBMISSION====================================================================================================================
-        elif pyotp.totp.TOTP(user.MFAkey).now() == form.pin.data:
+
+        elif not pyotp.totp.TOTP(user.MFAkey).now() == form.pin.data:
             if not user.MFA_enabled:
                 flash('You must set up Multi-Factor Authentication before you can log in', category="danger")
                 logger.warning(msg='User:{} tried to login without enabling MFA.'.format(user.email))
@@ -135,7 +133,7 @@ def login():
             if current_user.role == "end_user":
                 return redirect(url_for('accounts.account'))
             elif current_user.role == "db_admin":
-                return redirect("http://127.0.0.1:5000/admin")
+                return redirect("https://127.0.0.1:5000/admin")
             else:
                 return redirect(url_for('security.security'))
 

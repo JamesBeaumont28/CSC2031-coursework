@@ -55,19 +55,20 @@ QRcode(app)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 #Talisman setup
-csp = {'-style-src':['\'self\'',"'unsafe-inline'", "https://fonts.googleapis.com"],
+csp = {'connect-src':["\'self\'"],
+       '-style-src':['\'self\'',"'unsafe-inline'", "https://fonts.googleapis.com"],
        'script-src':['\'self\'','https://www.google.com/recaptcha/','https://www.gstatic.com/recaptcha/', "'unsafe-inline'"],
        'frame-src':['\'self\'','https://www.google.com/recaptcha/','https://recaptcha.google.com/recaptcha/'],
        'font-src': ["'self'","https://fonts.gstatic.com"]
        }
-talisman = Talisman(app,content_security_policy = csp)
+#talisman = Talisman(app,content_security_policy = csp)
 
 # DATABASE CONFIGURATION
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_ECHO'] = os.getenv('SQLALCHEMY_ECHO') == 'True'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS') == 'True'
 app.config['FLASK_ADMIN_FLUID_LAYOUT'] = os.getenv('FLASK_ADMIN_FLUID_LAYOUT')== 'True'
-
+app.config['PREFERRED_URL_SCHEME'] = os.getenv('PREFERRED_URL_SCHEME')
 #login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -216,11 +217,8 @@ class User(db.Model, UserMixin):
             return True
 
     def password_integrity_check(submitted_password):
-        #REMOVE TRIS BEFORE SUBMITION------------------------------------------------------------------------------
-        return True
         if len(submitted_password) < 8 or len(submitted_password) > 15:
             return False
-        print("i am running")
         upper = False
         lower = False
         digit = False
@@ -344,7 +342,7 @@ class LogView(ModelView):
             return True
 
 class UserView(ModelView):
-    column_display_pk = True  # optional, but I like to see the IDs in the list
+    column_display_pk = True
     column_hide_backrefs = False
     column_list = (
     'id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts', 'MFAkey', 'MFA_enabled','role','log')
